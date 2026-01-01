@@ -116,7 +116,7 @@ def main():
         if val_f1 > best_val_f1 + 1e-4:
             best_val_f1 = val_f1
             no_improve = 0
-            torch.save({"model": model.state_dict(), "arch": args.arch}, best_path)
+            torch.save({"model": model.state_dict(), "arch": "SimpleCNN"}, best_path)
             print(f"  [OK] saved best -> {best_path} (val_macroF1={best_val_f1:.4f})")
         else:
             no_improve += 1

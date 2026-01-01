@@ -11,7 +11,7 @@ from sklearn.metrics import f1_score, classification_report
 from .paths import PROCESSED_DIR
 from .data.dataset import LogMelCacheDataset, pad_collate
 from .data.labels import EMO_MAP
-from .models.cnn import SimpleCNN
+from .models.cnn import SimpleCNN, ResNet18
 
 EMOTIONS = list(EMO_MAP.values())
 
@@ -21,6 +21,14 @@ def set_seed(seed: int = 42) -> None:
     np.random.seed(seed)
     torch.manual_seed(seed)
     torch.cuda.manual_seed_all(seed)
+
+def build_model(arch: str, num_classes: int) -> nn.Module:
+    arch = arch.lower()
+    if arch == "simplecnn":
+        return SimpleCNN(num_classes=num_classes)
+    elif arch == "resnet18":
+        return ResNet18(num_classes=num_classes)
+    raise ValueError(f"Unknown arch: {arch}")
 
 @torch.no_grad()
 def evaluate(model: nn.Module, loader: DataLoader, device: torch.device) -> tuple[float, float, str]:
@@ -51,6 +59,7 @@ def evaluate(model: nn.Module, loader: DataLoader, device: torch.device) -> tupl
 
 def main():
     ap = argparse.ArgumentParser()
+    ap.add_argument("--arch", type=str, default="SimpleCNN", choices=["SimpleCNN", "ResNet18"])
     ap.add_argument("--batch_size", type=int, default=64)
     ap.add_argument("--epochs", type=int, default=30)
     ap.add_argument("--lr", type=float, default=1e-3)
@@ -80,13 +89,13 @@ def main():
     )
 
     num_classes = len(EMOTIONS)
-    model = SimpleCNN(num_classes=num_classes).to(device)
+    model = build_model(args.arch, num_classes).to(device)
 
     opt = torch.optim.AdamW(model.parameters(), lr=args.lr, weight_decay=1e-4)
     crit = nn.CrossEntropyLoss()
 
     best_val_f1 = -1.0
-    best_path = Path("best_cnn.pt")
+    best_path = Path(f"best_{args.arch.lower()}.pt")
     no_improve = 0
 
     for epoch in range(1, args.epochs + 1):

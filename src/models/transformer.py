@@ -87,6 +87,8 @@ class TransformerSER(nn.Module):
 
         if lengths is None:
             lengths = torch.full((x.size(0),), x.size(-1), device=x.device, dtype=torch.long)
+        else:
+            lengths = lengths.to(x.device)
         
         if self.use_subsample:
             # Conv1d expects [B, C, T], already [B, 80, T]

@@ -3,7 +3,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-def SimpleCNN(nn.Module):
+class SimpleCNN(nn.Module):
     """
     Input: [B, 1, N_MELS, T]
     Output: logits [B, num_classes]

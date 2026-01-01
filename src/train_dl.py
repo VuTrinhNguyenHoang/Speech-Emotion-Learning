@@ -12,6 +12,7 @@ from .paths import PROCESSED_DIR
 from .data.dataset import LogMelCacheDataset, pad_collate
 from .data.labels import EMO_MAP
 from .models.cnn import SimpleCNN, ResNet18
+from .models.transformer import TransformerSER
 
 EMOTIONS = list(EMO_MAP.values())
 
@@ -22,12 +23,23 @@ def set_seed(seed: int = 42) -> None:
     torch.manual_seed(seed)
     torch.cuda.manual_seed_all(seed)
 
-def build_model(arch: str, num_classes: int) -> nn.Module:
-    arch = arch.lower()
+def build_model(args, num_classes: int) -> nn.Module:
+    arch = args.arch.lower()
     if arch == "simplecnn":
         return SimpleCNN(num_classes=num_classes)
     elif arch == "resnet18":
         return ResNet18(num_classes=num_classes)
+    elif arch == "transformer":
+        return TransformerSER(
+            num_classes=num_classes,
+            n_mels=80,
+            d_model=args.d_model,
+            nhead=args.nhead,
+            num_layers=args.layers,
+            dim_feedforward=args.ffn,
+            dropout=args.dropout,
+            use_subsample=not args.no_subsample,
+        )
     raise ValueError(f"Unknown arch: {arch}")
 
 @torch.no_grad()
@@ -59,7 +71,13 @@ def evaluate(model: nn.Module, loader: DataLoader, device: torch.device) -> tupl
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--arch", type=str, default="SimpleCNN", choices=["SimpleCNN", "ResNet18"])
+    ap.add_argument("--arch", type=str, default="SimpleCNN", choices=["SimpleCNN", "ResNet18", "Transformer"])
+    ap.add_argument("--d_model", type=int, default=256)
+    ap.add_argument("--nhead", type=int, default=4)
+    ap.add_argument("--layers", type=int, default=4)
+    ap.add_argument("--ffn", type=int, default=1024)
+    ap.add_argument("--dropout", type=float, default=0.1)
+    ap.add_argument("--no_subsample", action="store_true")
     ap.add_argument("--batch_size", type=int, default=64)
     ap.add_argument("--epochs", type=int, default=30)
     ap.add_argument("--lr", type=float, default=1e-3)
@@ -89,7 +107,7 @@ def main():
     )
 
     num_classes = len(EMOTIONS)
-    model = build_model(args.arch, num_classes).to(device)
+    model = build_model(args, num_classes).to(device)
 
     opt = torch.optim.AdamW(model.parameters(), lr=args.lr, weight_decay=1e-4)
     crit = nn.CrossEntropyLoss()
@@ -125,7 +143,7 @@ def main():
         if val_f1 > best_val_f1 + 1e-4:
             best_val_f1 = val_f1
             no_improve = 0
-            torch.save({"model": model.state_dict(), "arch": "SimpleCNN"}, best_path)
+            torch.save({"model": model.state_dict(), "arch": args.arch}, best_path)
             print(f"  [OK] saved best -> {best_path} (val_macroF1={best_val_f1:.4f})")
         else:
             no_improve += 1

@@ -1,0 +1,15 @@
+SAMPLE_RATE = 16000
+DURATION_SEC = 3.0
+N_MELS = 80
+N_FFT = 400             # 25ms @ 16kHz
+HOP_LENGTH = 160        # 10ms @ 16kHz
+FMIN = 0
+FMAX = SAMPLE_RATE // 2
+EPS = 1e-6
+
+# split ratio by speaker
+TRAIN_RATIO = 0.7
+VAL_RATIO = 0.15
+TEST_RATIO = 0.15
+
+RANDOM_SEED = 42

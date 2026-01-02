@@ -16,12 +16,13 @@ from .data.audio import load_mono_resample, pad_or_crop, peak_normalize
 from .data.features import log_mel, to_ml_vector
 
 def featurize_csv(csv_path: str) -> tuple[np.ndarray, np.ndarray, list[str]]:
+    from pathlib import Path
     df = pd.read_csv(csv_path)
     X_list = []
     y_list = []
     target_len = int(SAMPLE_RATE * DURATION_SEC)
 
-    for _, row in tqdm(df.iterrows(), total=len(df), desc=f"Featurize {csv_path}"):
+    for _, row in tqdm(df.iterrows(), total=len(df), desc=f"Featurize {Path(csv_path).name}"):
         wav, _ = load_mono_resample(row["path"], SAMPLE_RATE)
         wav = peak_normalize(wav)
         wav = pad_or_crop(wav, target_len)

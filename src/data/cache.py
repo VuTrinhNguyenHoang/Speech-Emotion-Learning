@@ -73,7 +73,7 @@ def cache_split_fsc(csv_path: Path, out_dir: Path, intent2id: dict) -> None:
             n_skip += 1
             continue
 
-        wav, _ = load_mono_resample(p, SAMPLE_RATE)
+        wav, _ = load_mono_resample(wav_path, SAMPLE_RATE)
         wav = peak_normalize(wav)
         wav = pad_or_crop(wav, target_len)
         x = log_mel(wav).to(torch.float32)  # [80, T]

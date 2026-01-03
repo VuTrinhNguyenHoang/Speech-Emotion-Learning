@@ -114,6 +114,7 @@ def main() -> None:
 
     for d in [train_dir, val_dir, test_dir]:
         if not d.exists():
+
             raise FileNotFoundError(f"Missing cache split dir: {d}")
 
     train_ds = LogMelCacheDataset(train_dir)
@@ -188,8 +189,7 @@ def main() -> None:
                     "model": model.state_dict(),
                     "arch": args.arch,
                     "num_classes": num_classes,
-                    "label_map": str(Path(args.label_map)),
-                    "cache_name": args.cache_name,
+                    "label_map": str(SPLITS_DIR / "fsc_label_map.json"),
                 },
                 best_path,
             )

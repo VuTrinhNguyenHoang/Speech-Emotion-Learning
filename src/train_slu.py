@@ -97,6 +97,8 @@ def main() -> None:
     ap.add_argument("--num_workers", type=int, default=2)
     ap.add_argument("--seed", type=int, default=42)
     ap.add_argument("--patience", type=int, default=6)
+    ap.add_argument("--attn_type", type=str, default="sdpa", choices=["sdpa", "linear"])
+    ap.add_argument("--kernel", type=str, default="elu", choices=["elu", "relu"])
     args = ap.parse_args()
 
     set_seed(args.seed)

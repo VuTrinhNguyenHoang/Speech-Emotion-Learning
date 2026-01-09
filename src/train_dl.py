@@ -117,7 +117,7 @@ def main():
     crit = nn.CrossEntropyLoss()
 
     best_val_f1 = -1.0
-    best_path = Path(f"best_{args.arch.lower()}.pt")
+    best_path = Path(f"best_{args.arch.lower()}_{args.attn_type}.pt")
     no_improve = 0
 
     for epoch in range(1, args.epochs + 1):
